@@ -1,11 +1,13 @@
-import pandas as pd               # Pandas handles dataframes
 import os
-from dateutil import *            # for parsing dates
-
-from data_utils import *
+import pandas as pd               
+import sys
+from dateutil import *
 
 # set working directory as current directory
 set_working_dir()
+
+sys.path.insert(1, '../utils')
+from data_utils import *
 
 # load config file
 out = load_config()
