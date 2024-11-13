@@ -259,3 +259,385 @@ def get_cfips(df):
     df.county = df.county.astype(int)
     
     return df
+
+def merge_soi(df):
+
+    '''
+    Function that merges county-level filing data from SOI into existing dataframe.
+
+    input:
+        df: dataframe with county-level FIPS codes stored as column 'county'
+        (and possibly other variables, 'county' is the minimum requirement)
+    output:
+        df_overall: dataframe with the following columns (plus any other columns
+        included in input dataframe):
+            'county': five-digit county FIPS code
+            'share_eip': share of filers reporting <=$200k AGI claiming EIP in TY21
+            'mean_eip': per-county average EIP claim amount
+            'eip_amount': total EIP spend per county
+            'share_eitc_lt_75k(_17)': share of filers reporting <=$75k AGI claiming EITC
+            'mean_eitc(_17)': per-county average EITC claim amount
+            'tot_eitc(_17)': total EITC spend per county
+            'share_ctc(_17)': share of filers claiming CTC
+            'mean_ctc(_17)': per-county average CTC claim amount 
+            'tot_ctc(_17)': total CTC spend per county
+            'share_using_pp(_17)': share of returns filed using paid preparer
+            'share_ctc_dif': First difference of share of tps claiming CTC between TY21, TY17
+            'mean_ctc_dif': First difference of mean CTC claim amts between TY21, TY17
+            'share_eitc_dif': First difference of share of tps claiming EITC between TY21, TY17
+            'mean_eitc_dif': First difference of mean EITC claim amts between TY21, TY17
+    '''
+
+    # load data config file
+    out = load_config()
+      
+    # load aggregate and agi-level SOI data
+    overall = pd.read_csv('../data/raw/SOI/21incyallnoagi.csv', encoding='latin-1')
+    overall_17 = pd.read_csv('../data/raw/SOI/17incyallnoagi.csv', encoding='latin-1')
+    agi = pd.read_csv('../data/raw/SOI/21incyallagi.csv', encoding='latin-1')
+    agi_17 = pd.read_csv('../data/raw/SOI/17incyallagi.csv', encoding='latin-1')
+
+    # get 5-digit county code from state/county fips
+    for df in [overall, overall_17, agi, agi_17]:
+        df = df.loc[df.COUNTYFIPS != 0]
+        df = get_cfips(df)
+    
+    # generate aggregate filing data for agi-restricted tax credits (EITC, EIP)
+    for df in [agi, agi_17]:
+
+        if df == agi:
+            year=""
+        elif df == agi_17:
+            year='_17'
+
+        if df == agi: 
+            agi_temp = df.loc[df.agi_stub<=7]
+            agi_temp = agi_temp['county', 'N1', 'N10971'].groupby('county').sum()
+            agi_temp = agi_temp.reset_index()
+
+            agi_temp['share_eip'] = agi_temp.N10971/agi_temp.N1
+
+        df = df.loc[df.agi_stub<=5]
+        df = df[['county', 'N1', 'N59660', 'A59660', 'RAC']].groupby('county').sum()
+        df = df.reset_index()
+
+        df['share_eitc_lt_75k'+year] = df.N59660 / df.N1
+        df['mean_eitc'+year] = (df.A59660 / df.N59660) * 1000
+        df['tot_eitc'+year] = df.A59660
+
+    # generate aggregate data for all households
+    for df in [overall, overall_17]:
+        if df == overall:
+            year=""
+            df['eip_amount'] = df.A10971
+            df['mean_eip'] = (df.eip_amount / df.N10971) * 1000
+        elif df == overall_17:
+            year='_17'
+    
+        df['tot_ctc'+year] = df.A11070
+        df['share_using_pp'+year] = df.PREP / df.N1
+        df['share_ctc'+year] = df.N11070 / df.N1
+        df['mean_ctc'+year] = (df.A11070 / df.N11070) * 1000
+
+    # merge overall features with features for filers with less than $75K agi
+    overall = overall[['county', 'STATEFIPS', 'tot_ctc', 'eip_amount', 'share_using_pp', 'share_ctc', 'mean_eip', 'mean_ctc']].merge(agi[['county', 'share_eitc_lt_75k', 'mean_eitc', 'tot_eitc']], how='left', on='county', validate='1:1')
+    
+    overall = overall.merge(agi_17[['county', 'share_eitc_lt_75k_17', 'mean_eitc_17', 'tot_eitc_17']], how='left', on='county', validate='1:1')
+    
+    overall = overall.merge(agi_temp[['county', 'share_eip']], how='left', on='county', validate='1:1')
+
+    overall = overall.merge(overall_17[['county', 'share_ctc_17', 'mean_ctc_17', 'tot_ctc_17', 'share_using_pp_17']], how='left', on='county', validate='1:1')
+
+    # merge with base dataset
+    df_overall = overall.merge(df, how='left', on='county', validate='1:1')
+
+    # generate some final additional features
+    df_overall['share_ctc_dif'] = df_overall.share_ctc - df_overall.share_ctc_17
+    df_overall['mean_ctc_dif'] = (df_overall.mean_ctc - df_overall.mean_ctc_17*out['infl_mpl'])
+    df_overall['share_eitc_dif'] = df_overall.share_eitc_lt_75k - df_overall.share_eitc_lt_75k_17
+    df_overall['mean_eitc_dif'] = (df_overall.mean_eitc - df_overall.mean_eitc_17*out['infl_mpl'])
+
+    # generate state indicators
+    for state in df_overall.STATEFIPS.unique().tolist():
+         df_overall['state_ind_' + str(state)] = [1 if x == state else 0 for x in df_overall.STATEFIPS]
+
+    return df_overall
+
+def clean_data():
+    """
+    Wrapper function that imports, cleans, and writes out data for analysis.
+
+    inputs: None
+    outputs: None
+    """
+
+    dat_dict = {}
+
+    out = load_config()
+    years=['2017', '2021']
+    
+    for year in years:    
+    
+        dat_dict[year] = pd.DataFrame(columns=['zip', 'counts_' + year])
+    
+        for state in out['states']:
+            dat = get_paid_prep_count(state=state, year=year)
+            dat_dict[year] = pd.concat([dat_dict[year], dat], ignore_index=True)
+    
+        dat_dict[year] = zip_to_county(dat_dict[year], year=year)
+
+    df = pd.merge(dat_dict['2021'], dat_dict['2017'], how='left', on='county', validate='1:1')
+
+    df = merge_metro(df)
+    df = merge_demog(df)
+    df, df_agi = merge_soi(df)
+
+    df.to_csv('../data/clean/dat_clean.csv', index=False)
+    df_agi.to_csv('../data/clean/dat_clean_agi.csv', index=False)
+    
+    return None
+
+def make_2sls_table(df, 
+                    outcome='share_eic',  # outcome of interest
+    ):
+
+    '''
+    Generates table of 2SLS output, including parameter estimates,
+    standard errors, indications of significance levels, and
+    table caption formatted for LaTeX.
+
+    inputs:
+        df: dataframe with outcomes, instruments, endogenous variables, and controls
+        outcome: outcome of interest
+    outputs:
+        formatted .tex file with regression output
+    '''
+    
+    out = load_config()
+
+    y = df[outcome]
+    df["const"] = 1
+
+    res_second1 = IV2SLS(y, df[out['spec_1_controls']], df[out['spec_1_endog']], df[out['spec_1_inst']]).fit(
+        cov_type="robust"
+    )
+    print(res_second1)
+
+    res_second2 = IV2SLS(y, df[out['spec_2_controls']], df[out['spec_2_endog']], df[out['spec_2_inst']]).fit(
+        cov_type="robust"
+    )
+    print(res_second2)
+
+    res_second3 = IV2SLS(y, df[out['spec_3_controls']], df[out['spec_3_endog']], df[out['spec_3_inst']]).fit(
+        cov_type="robust"
+    )
+    print(res_second3)
+
+    filename = '../results/tables/ss_'+ outcome +'.txt'
+
+    with open(filename, mode='w') as output:
+
+        print(r"\begin{table}[h!]", file=output)
+        print(r"\begin{center}", file=output)
+        print(r"\caption{Second-stage regression results: RESULT \label{tab:LABEL}}", file=output)
+        print(r"\setlength\tabcolsep{0pt}", file=output)
+        print(r"\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}} lccc }", file=output)
+
+        print(r"Specification & (1) & (2) & (3)  \\", file=output)
+
+        print(r"\hline", file=output)
+        print(out['spec_1_inst'])
+
+        print(r"Share using paid preparer & "
+            + str(res_second1.params[out['spec_1_endog']].round(3))
+            + (r"^{***}" if res_second1.pvalues[out['spec_1_endog']].round(3) < 0.01 else
+                r"^{**}" if res_second1.pvalues[out['spec_1_endog']].round(3) < 0.05 else
+                 r"^{*}" if res_second1.pvalues[out['spec_1_endog']].round(3) < 0.1 else
+                  "")
+            + r" & "
+            + str(res_second2.params[out['spec_1_endog']].round(3))
+            + (r"^{***}" if res_second2.pvalues[out['spec_1_endog']].round(3) < 0.01 else
+                r"^{**}" if res_second2.pvalues[out['spec_1_endog']].round(3) < 0.05 else
+                 r"^{*}" if res_second2.pvalues[out['spec_1_endog']].round(3) < 0.1 else
+                  "")
+            + r" & "
+            + str(res_second3.params[out['spec_1_endog']].round(3))
+            + (r"^{***}" if res_second3.pvalues[out['spec_1_endog']].round(3) < 0.01 else
+                r"^{**}" if res_second3.pvalues[out['spec_1_endog']].round(3) < 0.05 else
+                 r"^{*}" if res_second3.pvalues[out['spec_1_endog']].round(3) < 0.1 else
+                  "")
+            + r" \\",
+            file=output
+        )
+        print(r"(instrumented) & ("
+            + str(res_second1.std_errors[out['spec_1_endog']].round(3))
+            + r") & ("
+            + str(res_second2.std_errors[out['spec_1_endog']].round(3))
+            + r") & ("
+            + str(res_second3.std_errors[out['spec_1_endog']].round(3))
+            + r") \\",
+            file=output
+        )
+
+        print(r"Majority Black & "
+            + r" & "
+            + str(res_second2.params['maj_black'].round(3))
+            + (r"^{***}" if res_second2.pvalues['maj_black'].round(3) < 0.01 else
+                r"^{**}" if res_second2.pvalues['maj_black'].round(3) < 0.05 else
+                r"^{*}" if res_second2.pvalues['maj_black'].round(3) < 0.1 else
+                "")
+            + r" & "
+            + str(res_second3.params['maj_black'].round(3))
+            + (r"^{***}" if res_second3.pvalues['maj_black'].round(3) < 0.01 else
+                r"^{**}" if res_second3.pvalues['maj_black'].round(3) < 0.05 else
+                r"^{*}" if res_second3.pvalues['maj_black'].round(3) < 0.1 else
+                "")
+            + r" \\",
+            file=output
+        )
+        print(r" & & ("
+            + str(res_second2.std_errors['maj_black'].round(3))
+            + r") & ("
+            + str(res_second3.std_errors['maj_black'].round(3))
+            + r") \\",
+            file=output
+        )
+
+        print(r"Majority Hispanic & "
+            + r" & "
+            + str(res_second2.params['maj_hisp'].round(3))
+            + (r"^{***}" if res_second2.pvalues['maj_hisp'].round(3) < 0.01 else
+                r"^{**}" if res_second2.pvalues['maj_hisp'].round(3) < 0.05 else
+                r"^{*}" if res_second2.pvalues['maj_hisp'].round(3) < 0.1 else
+                "")
+            + r" & "
+            + str(res_second3.params['maj_hisp'].round(3))
+            + (r"^{***}" if res_second3.pvalues['maj_hisp'].round(3) < 0.01 else
+                r"^{**}" if res_second3.pvalues['maj_hisp'].round(3) < 0.05 else
+                r"^{*}" if res_second3.pvalues['maj_hisp'].round(3) < 0.1 else
+                "")
+            + r" \\",
+            file=output
+        )
+        print(r" & & ("
+            + str(res_second2.std_errors['maj_hisp'].round(3))
+            + r") & ("
+            + str(res_second3.std_errors['maj_hisp'].round(3))
+            + r") \\",
+            file=output
+        )
+
+
+        print(r"Urban & "
+            + r" & "
+            + str(res_second2.params['urban'].round(3))
+            + (r"^{***}" if res_second2.pvalues['urban'].round(3) < 0.01 else
+                r"^{**}" if res_second2.pvalues['urban'].round(3) < 0.05 else
+                r"^{*}" if res_second2.pvalues['urban'].round(3) < 0.1 else
+                "")
+            + r" & "
+            + str(res_second3.params['urban'].round(3))
+            + (r"^{***}" if res_second3.pvalues['urban'].round(3) < 0.01 else
+                r"^{**}" if res_second3.pvalues['urban'].round(3) < 0.05 else
+                r"^{*}" if res_second3.pvalues['urban'].round(3) < 0.1 else
+                "")
+            + r" \\",
+            file=output
+        )
+        print(r" & & ("
+            + str(res_second2.std_errors['urban'].round(3))
+            + r") & ("
+            + str(res_second3.std_errors['urban'].round(3))
+            + r") \\",
+            file=output
+        )
+
+        print(r"Share college educated & "
+            + r" & "
+            
+            + r" & "
+            + str(res_second3.params['share_college'].round(3))
+            + (r"^{***}" if res_second3.pvalues['share_college'].round(3) < 0.01 else
+                r"^{**}" if res_second3.pvalues['share_college'].round(3) < 0.05 else
+                r"^{*}" if res_second3.pvalues['share_college'].round(3) < 0.1 else
+                "")
+            + r" \\",
+            file=output
+        )
+        print(r" & & & ("
+            + str(res_second3.std_errors['share_college'].round(3))
+            + r") \\",
+            file=output
+        )
+
+        print(r"Median household income & "
+            + r" & "
+            
+            + r" & "
+            + str(res_second3.params['hh_inc_pct'].round(3))
+            + (r"^{***}" if res_second3.pvalues['hh_inc_pct'].round(3) < 0.01 else
+                r"^{**}" if res_second3.pvalues['hh_inc_pct'].round(3) < 0.05 else
+                r"^{*}" if res_second3.pvalues['hh_inc_pct'].round(3) < 0.1 else
+                "")
+            + r" \\",
+            file=output
+        )
+        print(r"(percentiles) & & & ("
+            + str(res_second3.std_errors['hh_inc_pct'].round(3))
+            + r") \\",
+            file=output
+        )
+
+        print(r"Marriage rate & "
+            + r" & "
+            
+            + r" & "
+            + str(res_second3.params['r_marriage'].round(3))
+            + (r"^{***}" if res_second3.pvalues['r_marriage'].round(3) < 0.01 else
+                r"^{**}" if res_second3.pvalues['r_marriage'].round(3) < 0.05 else
+                r"^{*}" if res_second3.pvalues['r_marriage'].round(3) < 0.1 else
+                "")
+            + r" \\",
+            file=output
+        )
+        print(r"(percentiles) & & & ("
+            + str(res_second3.std_errors['r_marriage'].round(3))
+            + r") \\",
+            file=output
+        )
+
+        print(r"\hline", file=output)
+
+        print(r"N & "
+            + str(int(res_second1.nobs))
+            + r" & "
+            + str(int(res_second2.nobs))
+            + r" & "
+            + str(int(res_second3.nobs))
+            + r" \\",
+            file=output
+        )
+
+        print(r"\hline", file=output)
+        print(r"\\", file=output)
+        print(r"\end{tabular*}", file=output)
+        print(r"\multicolumn{3}{p\linewidth}{\footnotesize{\emph{Notes:} The table displays the results \
+             of second-stage instrumental variables regressions of the share of taxpayers using a paid \
+            preparer on OUTCOME. Control variables include whether the county is majority Black, \
+            majority hispanic, or urban; the share of county residents that are college educated;\
+             percentiles of county-level median household income; and county-level marriage \
+             rates. Counties are designated as urban if they are classified as a metro county under\
+            the USDA 2023 rural-urban continuum codes, and rural otherwise. Percentiles of median household \
+            income are derived as percentile rankings of county-level median household incomes reported \
+            by the 2021 Census 5-year ACS, and take on values between 0 and 1. Heteroskedasticity-robust \
+            standard errors are displayed in parentheses. \
+            2017 dollar amounts are adjusted for inflation using the Bureau of Labor Statistics CPI \
+                inflation calculator, indexed to December 2021. Stars correspond to p-values derived \
+                    from two-sided hypothesis tests. ^*: P<.10; ^{**}: P<.05; ^{***}:P<.01.", file=output)
+        print(r"}}", file=output)
+        print(r"\end{center}", file=output)
+        print(r"\end{table}", file=output)
+
+    os.rename(filename, filename[:-3]+'tex')
+
+    return None
