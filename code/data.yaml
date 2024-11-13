@@ -1,0 +1,239 @@
+infl_mpl: 1.13
+
+states: ['al',
+         'ak',
+         'az',
+         'ar',
+         'ca',
+         'co',
+         'ct',
+         'de',
+         'de',
+         'fl',
+         'ga',
+         'hi',
+         'ia',
+         'id',
+         'il',
+         'in',
+         'ks',
+         'ky',
+         'la',
+         'ma',
+         'md',
+         'me',
+         'mi',
+         'mn',
+         'mo',
+         'ms',
+         'mt',
+         'nc',
+         'nd',
+         'ne',
+         'nh',
+         'nj',
+         'nm',
+         'nv',
+         'ny',
+         'oh',
+         'ok',
+         'or',
+         'pa',
+         'ri',
+         'sc',
+         'sd',
+         'tn',
+         'tx',
+         'ut',
+         'va',
+         'vt',
+         'wa',
+         'wi',
+         'wv',
+         'wy']
+
+agi_bin_dict: {'returns': 'N1',
+                  'eip_returns': 'N10971',
+                  'eip_amt': 'A10971',
+                  'rac_returns': 'RAC',
+                  'eitc_returns': 'N59660',
+                  'eitc_amt': 'A59660',
+                  'ctc_nonref_amt': 'A07225',
+                  'ctc_ref_amt': 'A11070' }
+
+agi_17_bin_dict: {'returns': 'N1' }
+
+summ_stats: ["prep_per_cap_17",
+              "prep_per_cap_21",
+              'ctc_per_cap',
+              'eip_per_cap',
+              'share_eip',
+              'eitc_per_cap_lt_75k',
+              'share_eitc_lt_75k'
+]
+
+years: ['2017', '2021']
+
+fs_y: ['share_using_pp']
+
+fs_X_1: ['share_using_pp_17']
+
+fs_X_2: ['share_using_pp_17',
+                  'maj_black',
+                  'maj_hisp',
+                  'urban']
+
+fs_X_3: ['share_using_pp_17',
+                  'maj_hisp',
+                  'urban',
+                  'share_college',
+                  'hh_inc_pct',
+                  'r_marriage']
+
+fs_X_4: ['share_using_pp_17',
+                  'maj_hisp',
+                  'urban',
+                  'share_college',
+                  'hh_inc_pct',
+                  'r_marriage',
+                  'state_ind_02',
+                  'state_ind_04',
+                  'state_ind_05',
+                  'state_ind_06',
+                  'state_ind_08',
+                  'state_ind_10',
+                  'state_ind_11',
+                  'state_ind_12',
+                  'state_ind_13',
+                  'state_ind_15',
+                  'state_ind_16',
+                  'state_ind_17',
+                  'state_ind_18',
+                  'state_ind_19',
+                  'state_ind_20',
+                  'state_ind_21',
+                  'state_ind_22',
+                  'state_ind_23',
+                  'state_ind_24',
+                  'state_ind_25',
+                  'state_ind_26',
+                  'state_ind_27',
+                  'state_ind_28',
+                  'state_ind_29',
+                  'state_ind_30',
+                  'state_ind_31',
+                  'state_ind_32',
+                  'state_ind_33',
+                  'state_ind_34',
+                  'state_ind_35',
+                  'state_ind_36',
+                  'state_ind_37',
+                  'state_ind_38',
+                  'state_ind_39',
+                  'state_ind_40',
+                  'state_ind_41',
+                  'state_ind_42',
+                  'state_ind_44',
+                  'state_ind_45',
+                  'state_ind_46',
+                  'state_ind_47',
+                  'state_ind_48',
+                  'state_ind_49',
+                  'state_ind_50',
+                  'state_ind_51',
+                  'state_ind_53',
+                  'state_ind_54',
+                  'state_ind_55',
+                  'state_ind_56']
+
+endog: 'share_using_pp'
+
+inst: 'share_using_pp_17'
+
+spec_1_controls: ['const']
+
+spec_1_endog: 'share_using_pp'
+
+spec_1_inst: ['share_using_pp_17']
+
+spec_2_controls: ['const',
+                  'maj_black',
+                  'maj_hisp',
+                  'urban']
+
+spec_2_endog: ['share_using_pp']
+
+spec_2_inst: ['share_using_pp_17']
+
+spec_3_controls: ['const',
+                  'maj_black',
+                  'maj_hisp',
+                  'urban',
+                  'share_college',
+                  'hh_inc_pct',
+                  'r_marriage']
+
+spec_3_endog: ['share_using_pp']
+
+spec_3_inst: ['share_using_pp_17']
+
+spec_4_controls: ['const',
+                  'maj_black',
+                  'maj_hisp',
+                  'urban',
+                  'share_college',
+                  'hh_inc_pct',
+                  'r_marriage',
+                  'state_ind_02',
+                  'state_ind_04',
+                  'state_ind_05',
+                  'state_ind_06',
+                  'state_ind_08',
+                  'state_ind_10',
+                  'state_ind_11',
+                  'state_ind_12',
+                  'state_ind_13',
+                  'state_ind_15',
+                  'state_ind_16',
+                  'state_ind_17',
+                  'state_ind_18',
+                  'state_ind_19',
+                  'state_ind_20',
+                  'state_ind_21',
+                  'state_ind_22',
+                  'state_ind_23',
+                  'state_ind_24',
+                  'state_ind_25',
+                  'state_ind_26',
+                  'state_ind_27',
+                  'state_ind_28',
+                  'state_ind_29',
+                  'state_ind_30',
+                  'state_ind_31',
+                  'state_ind_32',
+                  'state_ind_33',
+                  'state_ind_34',
+                  'state_ind_35',
+                  'state_ind_36',
+                  'state_ind_37',
+                  'state_ind_38',
+                  'state_ind_39',
+                  'state_ind_40',
+                  'state_ind_41',
+                  'state_ind_42',
+                  'state_ind_44',
+                  'state_ind_45',
+                  'state_ind_46',
+                  'state_ind_47',
+                  'state_ind_48',
+                  'state_ind_49',
+                  'state_ind_50',
+                  'state_ind_51',
+                  'state_ind_53',
+                  'state_ind_54',
+                  'state_ind_55',
+                  'state_ind_56']
+
+spec_4_endog: ['share_using_pp']
+
+spec_4_inst: ['share_using_pp_17']
