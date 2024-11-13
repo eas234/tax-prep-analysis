@@ -18,7 +18,7 @@ def set_working_dir():
 
     return None
 
-def load_config(file_path='data.yaml'):
+def load_config(file_path='../config/data.yaml'):
 
     '''
     loads config file into memory for data cleaning, assigning
