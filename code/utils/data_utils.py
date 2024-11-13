@@ -50,11 +50,11 @@ def get_paid_prep_count(state='ak', year='2017'):
     '''
     
     if year == '2017':
-        df = pd.read_csv('../data/raw/paid_preparers/' + year + '/' + state + '/var/IRS/data/scripts/efile/downloadNew/' + state + '.txt', 
+        df = pd.read_csv('../../data/raw/paid_preparers/' + year + '/' + state + '/var/IRS/data/scripts/efile/downloadNew/' + state + '.txt', 
           sep="|", encoding='ISO-8859-1')
         
     elif year == '2021':
-        df = pd.read_csv('../data/raw/paid_preparers/' + year + '/var/IRS/data/scripts/efile/downloadNew/' + state + '.txt', 
+        df = pd.read_csv('../../data/raw/paid_preparers/' + year + '/var/IRS/data/scripts/efile/downloadNew/' + state + '.txt', 
           sep="|", encoding='ISO-8859-1')
     
     df.columns=['name', 'addr1', 'addr2', 'city', 'state', 'zip', 'zip4', 'fname', 'mi', 'lname', 'phone', 'bk1', 'bk2', 'bk3', 'bk4']
@@ -91,7 +91,7 @@ def zip_to_county(df, year='2017'):
     df = df.groupby('zip').sum().reset_index()
     
     # read in zip-county crosswalk
-    zip_cty = pd.read_csv('../data/raw/zip_county_xwalk/ZIP_COUNTY_03'+year+'.csv', usecols = ['ZIP', 'COUNTY'])
+    zip_cty = pd.read_csv('../../data/raw/zip_county_xwalk/ZIP_COUNTY_03'+year+'.csv', usecols = ['ZIP', 'COUNTY'])
    
     # standardize colnames and dtypes
     zip_cty = zip_cty.rename(columns={'ZIP': 'zip'})
@@ -142,7 +142,7 @@ def merge_metro(df):
         continuum codes. 
     '''
 
-    metro = pd.read_excel("../data/raw/urban_rural/Ruralurbancontinuumcodes2023.xlsx", usecols=['FIPS', 'RUCC_2023'])
+    metro = pd.read_excel("../../data/raw/urban_rural/Ruralurbancontinuumcodes2023.xlsx", usecols=['FIPS', 'RUCC_2023'])
     
     metro = metro.rename(columns={"FIPS": 'county'})
     
@@ -183,10 +183,10 @@ def merge_demog(df):
     '''
 
     # load Census ACS files
-    demog = pd.read_csv('../data/raw/census/census_5yr_acs_2021.csv', skiprows=[0])
-    econ = pd.read_csv('../data/raw/census/census_econ_2021.csv', skiprows=[0])
-    educ = pd.read_csv('../data/raw/census/census_educ_2021.csv', skiprows=[0])
-    marriage = pd.read_csv('../data/raw/census/census_marriage_2021.csv', skiprows=[0])
+    demog = pd.read_csv('../../data/raw/census/census_5yr_acs_2021.csv', skiprows=[0])
+    econ = pd.read_csv('../../data/raw/census/census_econ_2021.csv', skiprows=[0])
+    educ = pd.read_csv('../../data/raw/census/census_educ_2021.csv', skiprows=[0])
+    marriage = pd.read_csv('../../data/raw/census/census_marriage_2021.csv', skiprows=[0])
 
     # clean/standardize Census 'county' labels
     demog['county'] = [x[-5:] for x in demog.Geography]
@@ -293,10 +293,10 @@ def merge_soi(df):
     out = load_config()
       
     # load aggregate and agi-level SOI data
-    overall = pd.read_csv('../data/raw/SOI/21incyallnoagi.csv', encoding='latin-1')
-    overall_17 = pd.read_csv('../data/raw/SOI/17incyallnoagi.csv', encoding='latin-1')
-    agi = pd.read_csv('../data/raw/SOI/21incyallagi.csv', encoding='latin-1')
-    agi_17 = pd.read_csv('../data/raw/SOI/17incyallagi.csv', encoding='latin-1')
+    overall = pd.read_csv('../../data/raw/SOI/21incyallnoagi.csv', encoding='latin-1')
+    overall_17 = pd.read_csv('../../data/raw/SOI/17incyallnoagi.csv', encoding='latin-1')
+    agi = pd.read_csv('../../data/raw/SOI/21incyallagi.csv', encoding='latin-1')
+    agi_17 = pd.read_csv('../../data/raw/SOI/17incyallagi.csv', encoding='latin-1')
 
     # get 5-digit county code from state/county fips
     for df in [overall, overall_17, agi, agi_17]:
@@ -393,8 +393,8 @@ def clean_data():
     df = merge_demog(df)
     df, df_agi = merge_soi(df)
 
-    df.to_csv('../data/clean/dat_clean.csv', index=False)
-    df_agi.to_csv('../data/clean/dat_clean_agi.csv', index=False)
+    df.to_csv('../../data/clean/dat_clean.csv', index=False)
+    df_agi.to_csv('../../data/clean/dat_clean_agi.csv', index=False)
     
     return None
 
@@ -434,7 +434,7 @@ def make_2sls_table(df,
     )
     print(res_second3)
 
-    filename = '../results/tables/ss_'+ outcome +'.txt'
+    filename = '../../results/tables/ss_'+ outcome +'.txt'
 
     with open(filename, mode='w') as output:
 
