@@ -3,10 +3,13 @@ from dateutil import *            # for parsing dates
 import statsmodels.formula.api as smf  # for doing statistical regression
 from linearmodels.iv import IV2SLS # for two-stage least squares regressions specifically
 import statsmodels.api as sm       # access to the wider statsmodels library, including R datasets
-
-from data_utils import *
+import sys
 
 set_working_dir()
+
+sys.path.insert(1, '../utils')
+from data_utils import *
+
 out = load_config()
 
 df = pd.read_csv('../data/clean/dat_clean.csv')
