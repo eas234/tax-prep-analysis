@@ -13,10 +13,10 @@ from data_utils import *
 out = load_config()
 
 # import cleaned data
-df = pd.read_csv('../data/clean/dat_clean.csv')
+df = pd.read_csv('../../data/clean/dat_clean.csv')
 
 # generate table of summary statistics as .txt file
-with open('../results/tables/summ_stats.txt', mode='w') as output:
+with open('../../results/tables/summ_stats.txt', mode='w') as output:
      
       print(r"\begin{table}[h!]", file=output)
       print(r"\begin{center}", file=output)
@@ -197,4 +197,4 @@ with open('../results/tables/summ_stats.txt', mode='w') as output:
       print(r"\end{center}", file=output)
       print(r"\end{table}", file=output)
 
-      os.rename('../results/tables/summ_stats.txt', '../results/tables/summ_stats.tex')
+      os.rename('../../results/tables/summ_stats.txt', '../../results/tables/summ_stats.tex')
