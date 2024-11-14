@@ -12,7 +12,7 @@ from data_utils import *
 
 out = load_config()
 
-df = pd.read_csv('../data/clean/dat_clean.csv')
+df = pd.read_csv('../../data/clean/dat_clean.csv')
 df = df.dropna(subset=['maj_black',
                   'maj_hisp',
                   'urban',
@@ -57,7 +57,7 @@ X = sm.add_constant(X)
 model3 = sm.OLS(y, X)
 results3 = model3.fit(cov_type='HC3')
 
-with open('../results/tables/fs.txt', mode='w') as output:
+with open('../../results/tables/fs.txt', mode='w') as output:
 
     print(r"Specification & (1) & (2) & (3) \\", file=output)
     
