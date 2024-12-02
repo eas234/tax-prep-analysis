@@ -48,6 +48,26 @@ statsmodels==0.14.2
 
 ## Data Sources
 
+I compiled the data for this project from the following publicly available sources:
+
+### Census 2017-2021 5-year ACS
+[Marital status](https://data.census.gov/table/ACSST5Y2021.S1201?q=marriage%20rate&t=Marital%20Status%20and%20Marital%20History&g=010XX00US$0500000)\
+[Educational attainment](https://data.census.gov/table/ACSST5Y2021.S1501?q=marriage%20rate&t=Education&g=010XX00US$0500000)\
+[Economic characteristics](https://data.census.gov/table/ACSDP5Y2021.DP03?q=employment&g=010XX00US$0500000)\
+[Age, gender, race, and ethnicity](https://data.census.gov/table/ACSDP5YSPT2021.DP05?q=race&t=-02:001:Race%20and%20Ethnicity&g=010XX00US$0500000)
+
+### US county-level shapefiles (for heatmap)
+[Download from census.gov](https://www2.census.gov/geo/tiger/GENZ2018/shp/cb_2018_us_county_500k.zip)
+
+### SOI Tax Stats - County Data for TY17 and TY21
+[Tax Year 2017](https://www.irs.gov/statistics/soi-tax-stats-county-data-2017)\
+[Tax Year 2021](https://www.irs.gov/statistics/soi-tax-stats-county-data-2021)
+
+### USDA 2023 Rural-Urban Continuum Codes
+[Download from usda.gov](https://www.ers.usda.gov/webdocs/DataFiles/53251/Ruralurbancontinuumcodes2023.xlsx?v=5941.8)
+
+### ZIP-county crosswalk files
+ZIP-county crosswalks are available by year and quarter from HUD. You need to create a user profile in order to download these files, which you can do [here](https://www.huduser.gov/portal/datasets/usps_crosswalk.html). I use the crosswalks from Q1 2017 and Q1 2021.
 
 ## Data Dictionary
 Below are descriptions of features included in the post-processed data file. For descriptions of features included in the raw data, please refer to the data sources linked above.
