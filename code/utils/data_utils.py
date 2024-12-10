@@ -6,7 +6,7 @@ import yaml
 def set_working_dir():
 
     '''
-    Sets working directory as directory of this script.
+    Sets working directory as directory of script.
 
     inputs: None
     outputs: None
@@ -81,7 +81,7 @@ def zip_to_county(df, year='2017'):
 
     inputs: 
         df: zipcode-level data
-        year: calendar year assocaited with zipcode-level data
+        year: calendar year associated with zipcode-level data
 
     outputs:
         df: county-level data
