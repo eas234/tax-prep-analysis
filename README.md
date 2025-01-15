@@ -10,9 +10,9 @@ The repository is structured as follows:
 - **plots.py**: generates the 2017-2021 EITC amounts plot (figure 1, '../../results/figures/eitc_amts.png') and the 2021 preparer use heatmap (figure 2, '../../results/figures/prep_use_21_heatmap.png')
 - **regs.py**: runs all of the regressions included in the paper and writes regression output tables 2-8 as .tex files to '../../results/tables/'
 - **summary_stats.py**: generates table of summary statistics (table 1, '../../results/tables/summ_stats.tex')
-#### /config
+#### config
 - **data.yaml**: config file which defines a variety of state variables (e.g. inflation multiplier to convert 2017 dollars to 2021 dollars) as well as regression instruments, endogenous variables, and control variables.
-#### /utils
+#### utils
 - **data_utils.py**: defines all of the functions used in data cleaning and analysis. Function descriptions, inputs, and outputs are included in the file.
 
 The following directories are not included in the repository, but are referenced: 
