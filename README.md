@@ -1,5 +1,5 @@
 # tax-prep-analysis
-Repository for "The Effect of Tax Peparers on the Distribution of COVID-19 Benefits Programs", working paper
+Repository for "The Effect of Tax Preparers on the Distribution of COVID-19 Benefits Programs", working paper
 
 ## Overview of repository
 The repository is structured as follows:
